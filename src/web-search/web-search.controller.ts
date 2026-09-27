@@ -26,13 +26,11 @@ import { WebSearchService } from './web-search.service.js';
 @UseGuards(AuthGuard('jwt'))
 @Controller('search')
 export class WebSearchController {
-  constructor(
-    private readonly webSearchService: WebSearchService,
-  ) {}
+  constructor(private readonly webSearchService: WebSearchService) {}
 
   @Post()
   @ApiOperation({
-    summary: 'Search the web with result caching',
+    summary: 'Search the web',
   })
   @ApiResponse({
     status: 201,
@@ -40,8 +38,9 @@ export class WebSearchController {
   })
   @ApiResponse({
     status: 400,
-    description: 'Search provider error or usage limit reached',
+    description: 'Invalid query, search provider error, or usage limit reached',
   })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   search(
     @CurrentUser() user: CurrentUserData,
     @Body() dto: SearchDto,
@@ -53,8 +52,9 @@ export class WebSearchController {
   @ApiOperation({ summary: 'Get web search history' })
   @ApiResponse({
     status: 200,
-    description: 'Search history returned',
+    description: 'Search history returned successfully',
   })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   history(@CurrentUser() user: CurrentUserData) {
     return this.webSearchService.history(user.id);
   }
@@ -63,8 +63,9 @@ export class WebSearchController {
   @ApiOperation({ summary: 'Get recent web searches' })
   @ApiResponse({
     status: 200,
-    description: 'Recent searches returned',
+    description: 'Recent searches returned successfully',
   })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   recent(@CurrentUser() user: CurrentUserData) {
     return this.webSearchService.recent(user.id);
   }
@@ -75,20 +76,25 @@ export class WebSearchController {
   })
   @ApiQuery({
     name: 'q',
+    required: false,
     example: 'artificial',
     description: 'Partial search query',
   })
   @ApiResponse({
     status: 200,
-    description: 'Search suggestions returned',
+    description: 'Search suggestions returned successfully',
+    schema: {
+      example: [
+        'artificial intelligence',
+        'artificial intelligence news',
+      ],
+    },
   })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   suggestions(
     @CurrentUser() user: CurrentUserData,
     @Query('q') query: string,
   ) {
-    return this.webSearchService.suggestions(
-      user.id,
-      query ?? '',
-    );
+    return this.webSearchService.suggestions(user.id, query ?? '');
   }
 }

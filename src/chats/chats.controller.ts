@@ -11,6 +11,7 @@ import { AuthGuard } from '@nestjs/passport';
 import {
   ApiBearerAuth,
   ApiOperation,
+  ApiParam,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -30,19 +31,19 @@ export class ChatsController {
 
   @Post('prompt')
   @ApiOperation({
-    summary:
-      'Send a prompt to an AI provider and save the response',
+    summary: 'Send a prompt to an AI provider and save the response',
   })
   @ApiResponse({
     status: 201,
-    description: 'AI response generated successfully',
+    description: 'AI response generated and conversation saved successfully',
   })
   @ApiResponse({
     status: 400,
     description:
-      'Provider error, missing API key, or usage limit reached',
+      'Invalid request, provider error, missing API key, or usage limit reached',
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Provider or conversation not found' })
   sendPrompt(
     @CurrentUser() user: CurrentUserData,
     @Body() dto: SendPromptDto,
@@ -56,8 +57,9 @@ export class ChatsController {
   })
   @ApiResponse({
     status: 200,
-    description: 'Conversation history returned',
+    description: 'Conversation history returned successfully',
   })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   getConversations(@CurrentUser() user: CurrentUserData) {
     return this.chatsService.getConversations(user.id);
   }
@@ -66,14 +68,17 @@ export class ChatsController {
   @ApiOperation({
     summary: 'Get a conversation and all of its messages',
   })
+  @ApiParam({
+    name: 'id',
+    description: 'Conversation UUID',
+    example: '7dbfd054-bd83-4e31-b60e-7eb71ef68ca2',
+  })
   @ApiResponse({
     status: 200,
-    description: 'Conversation returned',
+    description: 'Conversation and messages returned successfully',
   })
-  @ApiResponse({
-    status: 404,
-    description: 'Conversation not found',
-  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Conversation not found' })
   getConversation(
     @CurrentUser() user: CurrentUserData,
     @Param('id') id: string,
@@ -83,10 +88,17 @@ export class ChatsController {
 
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a conversation' })
+  @ApiParam({
+    name: 'id',
+    description: 'Conversation UUID',
+    example: '7dbfd054-bd83-4e31-b60e-7eb71ef68ca2',
+  })
   @ApiResponse({
     status: 200,
-    description: 'Conversation deleted',
+    description: 'Conversation deleted successfully',
   })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Conversation not found' })
   deleteConversation(
     @CurrentUser() user: CurrentUserData,
     @Param('id') id: string,
