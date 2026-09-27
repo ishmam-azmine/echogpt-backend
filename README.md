@@ -1,124 +1,548 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# EchoGPT Backend REST API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Backend REST API for **EchoGPT**, built with NestJS, PostgreSQL, Prisma, JWT authentication, Swagger/OpenAPI, and Docker.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Tech Stack
 
-## Description
+- NestJS
+- TypeScript
+- PostgreSQL 17
+- Prisma ORM
+- JWT + Passport
+- bcrypt
+- Swagger / OpenAPI
+- class-validator
+- Helmet
+- @nestjs/throttler
+- Docker / Docker Compose
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Features
 
-## Project setup
+### Authentication
 
-```bash
-$ npm install
+- User registration and login
+- JWT access tokens
+- Refresh tokens
+- Secure logout
+- bcrypt password hashing
+- Database-backed sessions
+- Refresh tokens stored as hashes
+- Active/inactive account validation
+
+### User Management
+
+- View profile
+- Update profile
+- Change password
+- Delete account
+- USER and ADMIN roles
+- Normalized Role table
+- Role-based authorization
+
+### Subscription Management
+
+- FREE and PREMIUM plans
+- Subscription status
+- Upgrade and downgrade
+- Usage tracking
+- Remaining request calculation
+- Request-limit enforcement
+- FREE: 100 requests
+- PREMIUM: 1000 requests
+
+### AI Provider Management
+
+Supports:
+
+- OpenAI
+- Anthropic / Claude
+- Google Gemini
+
+Provider functionality includes:
+
+- Add provider
+- Edit provider
+- Delete provider
+- Enable/disable provider
+- Set default provider
+- Provider health checking
+- Provider/model configuration
+- Encrypted API-key storage
+- API keys are not exposed in API responses
+- Provider management restricted to ADMIN users
+
+### Chat
+
+- Send AI prompts
+- Select an AI provider
+- Use the configured default provider
+- Select/override model
+- Create conversations
+- Continue existing conversations
+- Store user and assistant messages
+- Retrieve conversation history
+- Retrieve individual conversations
+- Delete conversations
+- Token usage tracking
+- Response-time tracking
+- Subscription usage enforcement
+- API usage logging
+
+### Web Search
+
+- Search endpoint
+- Search history
+- Recent searches
+- Search suggestions
+- Result caching
+- Subscription usage enforcement
+- API usage logging
+
+A valid web-search API key is required for live external search results.
+
+### Admin APIs
+
+ADMIN users can access:
+
+- Dashboard statistics
+- User management
+- User role management
+- User activation/deactivation
+- Subscription management
+- Provider management
+- API usage analytics
+- API usage logs
+- HTTP request logs
+- System health information
+
+### Monitoring and Security
+
+- Public health endpoint
+- Database health checking
+- Automatic HTTP request logging
+- Success/failure logging
+- Response-time logging
+- API usage analytics
+- Global rate limiting
+- Helmet security headers
+- Request validation
+- Unknown DTO fields rejected
+- JWT authentication
+- Role-based authorization
+- Hashed passwords
+- Hashed refresh tokens
+- Encrypted provider API keys
+- Environment-based secrets
+
+## Database Design
+
+The PostgreSQL database contains normalized models for:
+
+- User
+- Role
+- Session
+- Subscription
+- AI Provider
+- Conversation
+- Message
+- Web Search
+- API Usage Log
+- Request Log
+
+Relationships, indexes, foreign keys, unique constraints, and cascading behavior are defined through Prisma.
+
+## Project Structure
+
+```text
+src/
+├── admin/
+├── auth/
+├── chats/
+├── common/
+├── health/
+├── prisma/
+├── providers/
+├── subscriptions/
+├── users/
+├── web-search/
+├── app.module.ts
+└── main.ts
+
+prisma/
+├── migrations/
+└── schema.prisma
 ```
 
-## Compile and run the project
+## Prerequisites
+
+For local development:
+
+- Node.js 24+
+- npm
+- PostgreSQL 17+
+
+Docker and Docker Compose can alternatively run the application and database together.
+
+## Environment Setup
+
+Copy the example environment file:
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+cp .env.example .env
 ```
 
-## Run tests
+Windows PowerShell:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Then configure the values inside `.env`.
+
+Example:
+
+```env
+PORT=3000
+NODE_ENV=development
+
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/echogpt?schema=public"
+
+JWT_ACCESS_SECRET="replace-with-a-strong-access-secret"
+JWT_ACCESS_EXPIRES_IN="15m"
+
+JWT_REFRESH_SECRET="replace-with-a-strong-refresh-secret"
+JWT_REFRESH_EXPIRES_IN="7d"
+
+ENCRYPTION_KEY="replace-with-a-strong-encryption-secret"
+
+OPENAI_API_KEY=""
+ANTHROPIC_API_KEY=""
+GEMINI_API_KEY=""
+WEB_SEARCH_API_KEY=""
+```
+
+Provider credentials configured through the provider-management API are encrypted before being stored in PostgreSQL.
+
+## Installation
+
+Install dependencies:
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+npm install
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+Generate the Prisma client:
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+npm run db:generate
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Observability
-
-In production applications, observability is essential for understanding how your system behaves, detecting issues early, and maintaining reliable performance.
-
-[NestJS Observe](https://observe.nestjs.com) automatically instruments your NestJS application, giving you deep visibility into your system with minimal setup:
-
-- **Distributed tracing:** Follow requests across services and understand how they flow through your system.
-- **Waterfall analysis:** Visualize request execution and identify slow operations, bottlenecks, and unexpected delays.
-- **Performance analysis:** Analyze application performance in real time and quickly pinpoint areas that need optimization.
-- **Metrics:** Track key application and infrastructure metrics to understand system health and performance trends.
-- **Logging:** Centralize and correlate logs with traces and other telemetry to make debugging easier.
-- **Error tracking:** Detect errors quickly and investigate their root causes with the surrounding context.
-- **SLA monitoring:** Track service-level objectives and identify when your application is approaching or exceeding defined thresholds.
-- **Alarms and alerts:** Set up alerts for critical errors, performance degradation, SLA violations, and other anomalies so your team can react quickly.
-
-To add it to this project:
+Apply development migrations:
 
 ```bash
-$ npm install @nestjs/observe
+npm run db:migrate
 ```
 
-Then follow the [setup guide](https://docs.nestjs.com/observability/overview) - it takes a single import and an app key.
+Start the development server:
 
-The free plan needs no payment details and covers 300,000 events a month. You can also browse the [live demo](https://www.observe-demo.nestjs.com/dashboard) first - the whole dashboard over a busy service's data, with nothing to install.
+```bash
+npm run start:dev
+```
 
-## Resources
+The server runs at:
 
-Check out a few resources that may come in handy when working with NestJS:
+```text
+http://localhost:3000
+```
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Auto-instrument your application with [NestJS Observe](https://observe.nestjs.com). Distributed tracing, metrics, and logging made easy. Error tracking and performance monitoring for your NestJS applications.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+All REST endpoints use the prefix:
 
-## Support
+```text
+/api/v1
+```
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+## Swagger Documentation
 
-## Stay in touch
+Interactive Swagger documentation is available at:
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+```text
+http://localhost:3000/docs
+```
+
+Protected endpoints use Bearer JWT authentication.
+
+To test a protected endpoint:
+
+1. Register or log in.
+2. Copy the returned access token.
+3. Open Swagger.
+4. Click **Authorize**.
+5. Enter the access token.
+6. Execute the protected endpoint.
+
+## API Routes
+
+### Authentication
+
+```text
+POST /api/v1/auth/register
+POST /api/v1/auth/login
+POST /api/v1/auth/refresh
+POST /api/v1/auth/logout
+```
+
+### Users
+
+```text
+GET    /api/v1/users/me
+PATCH  /api/v1/users/me
+PATCH  /api/v1/users/me/password
+DELETE /api/v1/users/me
+```
+
+### Subscriptions
+
+```text
+GET   /api/v1/subscriptions/me
+GET   /api/v1/subscriptions/me/usage
+PATCH /api/v1/subscriptions/me/plan
+```
+
+### AI Providers
+
+```text
+POST   /api/v1/providers
+GET    /api/v1/providers
+GET    /api/v1/providers/:id
+PATCH  /api/v1/providers/:id
+DELETE /api/v1/providers/:id
+
+PATCH /api/v1/providers/:id/toggle
+PATCH /api/v1/providers/:id/default
+GET   /api/v1/providers/:id/health
+```
+
+Provider-management operations require ADMIN authorization.
+
+### Chat
+
+```text
+POST   /api/v1/chats/prompt
+GET    /api/v1/chats
+GET    /api/v1/chats/:id
+DELETE /api/v1/chats/:id
+```
+
+Example prompt request:
+
+```json
+{
+  "prompt": "Explain retrieval-augmented generation simply.",
+  "providerId": "optional-provider-uuid",
+  "model": "optional-model",
+  "conversationId": "optional-conversation-uuid"
+}
+```
+
+If no provider is specified, the configured default provider is used.
+
+### Web Search
+
+```text
+POST /api/v1/search
+GET  /api/v1/search/history
+GET  /api/v1/search/recent
+GET  /api/v1/search/suggestions
+```
+
+### Admin
+
+```text
+GET   /api/v1/admin/dashboard
+
+GET   /api/v1/admin/users
+GET   /api/v1/admin/users/:id
+PATCH /api/v1/admin/users/:id/role
+PATCH /api/v1/admin/users/:id/status
+PATCH /api/v1/admin/users/:id/subscription
+
+GET /api/v1/admin/analytics/usage
+GET /api/v1/admin/usage-logs
+GET /api/v1/admin/request-logs
+GET /api/v1/admin/system/health
+```
+
+All Admin endpoints require the `ADMIN` role.
+
+### Health
+
+```text
+GET /api/v1/health
+```
+
+Example response:
+
+```json
+{
+  "status": "ok",
+  "database": "connected",
+  "responseTimeMs": 2,
+  "uptimeSeconds": 120,
+  "timestamp": "2026-09-27T14:00:00.000Z"
+}
+```
+
+## Subscription Limits
+
+Each applicable AI or web-search request consumes subscription usage.
+
+| Plan | Request Limit |
+| --- | ---: |
+| FREE | 100 |
+| PREMIUM | 1000 |
+
+Requests exceeding the active subscription limit are rejected.
+
+## Database Commands
+
+Generate Prisma client:
+
+```bash
+npm run db:generate
+```
+
+Create/apply a development migration:
+
+```bash
+npm run db:migrate
+```
+
+Apply existing migrations in production:
+
+```bash
+npm run db:deploy
+```
+
+Check migration status:
+
+```bash
+npm run db:status
+```
+
+Open Prisma Studio:
+
+```bash
+npm run db:studio
+```
+
+## Production Build
+
+Build the application:
+
+```bash
+npm run build
+```
+
+Start the production build:
+
+```bash
+npm run start:prod
+```
+
+## Docker
+
+The project includes:
+
+- `Dockerfile`
+- `docker-compose.yml`
+- `.dockerignore`
+
+Start the API and PostgreSQL:
+
+```bash
+docker compose up --build
+```
+
+Docker Compose will:
+
+1. Start PostgreSQL.
+2. Wait for the database health check.
+3. Start the EchoGPT API.
+4. Apply Prisma production migrations.
+5. Expose the API on port 3000.
+
+Stop the containers:
+
+```bash
+docker compose down
+```
+
+Remove the containers and PostgreSQL volume:
+
+```bash
+docker compose down -v
+```
+
+## Validation and Error Handling
+
+Global request validation includes:
+
+- DTO whitelisting
+- Unknown-field rejection
+- Automatic type transformation
+- class-validator validation
+
+NestJS HTTP exceptions are used for authentication, authorization, validation, missing resources, subscription limits, provider failures, and other API errors.
+
+## Security
+
+The backend implements:
+
+- bcrypt password hashing
+- JWT access authentication
+- Refresh-token rotation/session handling
+- Hashed refresh tokens
+- Role-based authorization
+- Provider API-key encryption
+- Helmet security headers
+- Rate limiting
+- Request validation
+- Environment-based secrets
+- `.env` exclusion from Git
+
+For production deployments:
+
+- Replace all example secrets.
+- Use strong PostgreSQL credentials.
+- Use HTTPS.
+- Restrict CORS to trusted origins.
+- Rotate provider credentials when necessary.
+- Never commit `.env`.
+
+## Typical Swagger Test Flow
+
+1. Register a user.
+2. Log in.
+3. Authorize Swagger with the access token.
+4. View/update the profile.
+5. Check subscription usage.
+6. Configure an AI provider with an ADMIN account.
+7. Set a default provider.
+8. Check provider health.
+9. Send a chat prompt.
+10. View conversation history.
+11. Perform a web search when a search key is configured.
+12. Review Admin analytics and request logs.
+13. Check system health.
+
+## External API Credentials
+
+Real AI responses require valid credentials for the selected AI provider.
+
+Live web-search functionality requires a valid `WEB_SEARCH_API_KEY`.
+
+Without external provider credentials, authentication, user management, subscriptions, database functionality, admin APIs, Swagger documentation, health monitoring, and other internal functionality can still be tested locally.
 
 ## License
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Developed as an internship technical assessment.
