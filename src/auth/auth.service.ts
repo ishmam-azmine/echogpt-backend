@@ -11,6 +11,8 @@ import { PrismaService } from '../prisma/prisma.service.js';
 import type { RegisterDto } from './dto/register.dto.js';
 import type { LoginDto } from './dto/login.dto.js';
 
+type AppRole = 'USER' | 'ADMIN';
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -30,6 +32,14 @@ export class AuthService {
       throw new ConflictException('An account with this email already exists');
     }
 
+    const defaultRole = await this.prisma.role.findUnique({
+      where: { name: 'USER' },
+    });
+
+    if (!defaultRole) {
+      throw new Error('Default USER role is not configured');
+    }
+
     const passwordHash = await bcrypt.hash(dto.password, 12);
 
     const user = await this.prisma.user.create({
@@ -38,16 +48,26 @@ export class AuthService {
         passwordHash,
         firstName: dto.firstName?.trim(),
         lastName: dto.lastName?.trim(),
+        role: {
+          connect: {
+            id: defaultRole.id,
+          },
+        },
         subscription: {
           create: {},
         },
       },
+      include: {
+        role: true,
+      },
     });
+
+    const role = this.toAppRole(user.role.name);
 
     const tokens = await this.createSession(
       user.id,
       user.email,
-      user.role,
+      role,
       userAgent,
       ipAddress,
     );
@@ -64,6 +84,9 @@ export class AuthService {
 
     const user = await this.prisma.user.findUnique({
       where: { email },
+      include: {
+        role: true,
+      },
     });
 
     if (!user || !user.isActive) {
@@ -79,10 +102,12 @@ export class AuthService {
       throw new UnauthorizedException('Invalid email or password');
     }
 
+    const role = this.toAppRole(user.role.name);
+
     const tokens = await this.createSession(
       user.id,
       user.email,
-      user.role,
+      role,
       userAgent,
       ipAddress,
     );
@@ -110,9 +135,7 @@ export class AuthService {
       },
     });
 
-    let matchingSession:
-      | (typeof sessions)[number]
-      | undefined;
+    let matchingSession: (typeof sessions)[number] | undefined;
 
     for (const session of sessions) {
       if (await bcrypt.compare(refreshToken, session.refreshTokenHash)) {
@@ -127,6 +150,9 @@ export class AuthService {
 
     const user = await this.prisma.user.findUnique({
       where: { id: payload.sub },
+      include: {
+        role: true,
+      },
     });
 
     if (!user || !user.isActive) {
@@ -136,7 +162,7 @@ export class AuthService {
     const accessToken = await this.signAccessToken(
       user.id,
       user.email,
-      user.role,
+      this.toAppRole(user.role.name),
     );
 
     return {
@@ -171,7 +197,7 @@ export class AuthService {
   private async createSession(
     userId: string,
     email: string,
-    role: 'USER' | 'ADMIN',
+    role: AppRole,
     userAgent?: string,
     ipAddress?: string,
   ) {
@@ -201,7 +227,9 @@ export class AuthService {
 
     const refreshTokenHash = await bcrypt.hash(refreshToken, 12);
 
-    const expiresAt = new Date(Date.now() + ms(refreshExpiry as StringValue));
+    const expiresAt = new Date(
+      Date.now() + ms(refreshExpiry as StringValue),
+    );
 
     await this.prisma.session.create({
       data: {
@@ -222,9 +250,11 @@ export class AuthService {
   private async signAccessToken(
     userId: string,
     email: string,
-    role: 'USER' | 'ADMIN',
+    role: AppRole,
   ) {
-    const secret = this.configService.get<string>('JWT_ACCESS_SECRET');
+    const secret =
+      this.configService.get<string>('JWT_ACCESS_SECRET');
+
     const expiresIn =
       this.configService.get<string>('JWT_ACCESS_EXPIRES_IN') ?? '15m';
 
@@ -246,7 +276,8 @@ export class AuthService {
   }
 
   private async verifyRefreshToken(refreshToken: string) {
-    const secret = this.configService.get<string>('JWT_REFRESH_SECRET');
+    const secret =
+      this.configService.get<string>('JWT_REFRESH_SECRET');
 
     if (!secret) {
       throw new Error('JWT_REFRESH_SECRET is not configured');
@@ -256,13 +287,23 @@ export class AuthService {
       return await this.jwtService.verifyAsync<{
         sub: string;
         email: string;
-        role: 'USER' | 'ADMIN';
+        role: AppRole;
       }>(refreshToken, {
         secret,
       });
     } catch {
-      throw new UnauthorizedException('Invalid or expired refresh token');
+      throw new UnauthorizedException(
+        'Invalid or expired refresh token',
+      );
     }
+  }
+
+  private toAppRole(role: string): AppRole {
+    if (role === 'USER' || role === 'ADMIN') {
+      return role;
+    }
+
+    throw new UnauthorizedException('User role is invalid');
   }
 
   private safeUser(user: {
@@ -270,7 +311,9 @@ export class AuthService {
     email: string;
     firstName: string | null;
     lastName: string | null;
-    role: 'USER' | 'ADMIN';
+    role: {
+      name: string;
+    };
     emailVerified: boolean;
     createdAt: Date;
   }) {
@@ -279,7 +322,7 @@ export class AuthService {
       email: user.email,
       firstName: user.firstName,
       lastName: user.lastName,
-      role: user.role,
+      role: this.toAppRole(user.role.name),
       emailVerified: user.emailVerified,
       createdAt: user.createdAt,
     };
